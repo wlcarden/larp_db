@@ -19,11 +19,6 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
     console.error("Failed to connect to MongoDB:", err);
   });
 
-// Simple in-memory credentials for the web interface
-const webUsers = {
-  'webadmin': 'webpassword'
-};
-
 // Middleware to check login
 function requireLogin(req, res, next) {
   if (req.headers.cookie && req.headers.cookie.includes('loggedin=true')) {
@@ -45,13 +40,21 @@ app.get('/login', (req, res) => {
 });
 
 // Login route
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  if (webUsers[username] && webUsers[username] === password) {
-    res.setHeader('Set-Cookie', 'loggedin=true; Path=/; HttpOnly');
-    return res.redirect('/collections');
+  try {
+    const user = await db.collection('users').findOne({ username: username, hashed_password: password });
+    console.log('Login attempt:', { username, password });
+    console.log('User found:', user);
+    if (user) {
+      res.setHeader('Set-Cookie', 'loggedin=true; Path=/; HttpOnly');
+      return res.redirect('/collections');
+    }
+    res.send('Invalid credentials. <a href="/login">Try again</a>.<br>' + username + ':' + password);
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.send("Error during login.");
   }
-  res.send('Invalid credentials. <a href="/login">Try again</a>.');
 });
 
 // Logout route
@@ -144,7 +147,11 @@ app.get('/collections/:name/delete/:id', requireLogin, async (req, res) => {
   }
 });
 
+// Root route
+app.get('/', requireLogin, (req, res) => {
+  res.redirect('/login');
+});
+
 app.listen(3000, () => {
   console.log('Webserver running on http://0.0.0.0:3000');
 });
-
