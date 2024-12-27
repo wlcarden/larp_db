@@ -165,7 +165,7 @@ router.get('/events-view/:gameId', async (req, res) => {
         <td>${event.startTime ? formatDate(event.startTime) : ''}</td>
         <td>${event.endTime ? formatDate(event.endTime) : ''}</td>
         <td>${event.description || ''}</td>
-        <td><center>${moduleCount}</center></td>
+        <td><center><b>${moduleCount}</center></b></td>
       </tr>`;
     }
     html += `</table></div>`;
