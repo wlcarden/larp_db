@@ -18,21 +18,14 @@ router.get('/game-view', requireLogin, async (req, res) => {
     const games = await gamesCollection.find({}).toArray();
     let html = `
       <!DOCTYPE html>
-      <html>
+      <html>      
+      <title>LARP Nexus</title>
+      ${res.locals.cssLink}
       <head>
-        <title>Games View</title>
-        ${res.locals.cssLink}
-        <style>
-          tr[data-href] {
-            cursor: pointer;
-          }
-          tr[data-href]:hover {
-            background-color: #f0f0f0;
-          }
-        </style>
+        <div><h1>LARP Nexus</h1></div>
       </head>
       <body>
-        <h1>Games View</h1>
+        <h1>Games</h1>
         <table border="1" cellpadding="5" cellspacing="0">
           <tr><th>Name</th><th>System</th><th>Administrators</th><th>Writers</th><th># Module Properties</th></tr>`;
     

@@ -11,7 +11,6 @@ const checkDbConnection = (req, res, next) => {
   next();
 };
 
-
 router.get('/edit-event/:eventId', checkDbConnection, async (req, res) => {
   const { eventId } = req.params;
   const theme = req.cookies.theme || 'default';
@@ -52,20 +51,42 @@ router.get('/edit-event/:eventId', checkDbConnection, async (req, res) => {
             <tr><th>Description</th><td><textarea name="description">${event.description || ''}</textarea></td></tr>
           </table>
           <button type="submit">Save Changes</button>
+          <button type="button" id="deleteEventButton" style="background-color:red;float:right;">Delete Event</button>
         </form>
         <br/><a href="/events-view/${event.gameId}">Back to Events</a>
       </body>
-      </html>`;
-    res.send(html);
-  } catch (err) {
-    console.error("Error loading event edit page:", err);
-    res.send("Error loading event edit page.");
-  }
-});
+      <script>
+        // Ensure the delete button is working
+        console.log('Delete button script loaded.');
+        document.getElementById('deleteEventButton').addEventListener('click', function() {
+          if (confirm('Are you sure you want to delete this event?')) {
+            fetch('/delete-event/${eventId}', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => {
+              if (response.ok) {
+                window.location.href = '/events-view/${event.gameId}';
+              } else {
+                alert('Failed to delete event.');
+              }
+             })
+            .catch(error => console.error('Error during delete request:', error));
+            
+          }
+        });
+      </script>`;
+      res.send(html);
+    } catch (err) {
+      console.error('Error fetching event:', err);
+      res.status(500).send('Error fetching event.');
+    }
+  });
 
-router.post('/edit-event/:eventId', checkDbConnection, async (req, res) => {
+router.delete('/delete-event/:eventId', checkDbConnection, async (req, res) => {
   const { eventId } = req.params;
-  const { gameId, name, startTime, endTime, description } = req.body;
   try {
     const db = req.app.locals.db;
     const event = await db.collection('Events').findOne({ _id: new ObjectId(eventId) });
@@ -80,21 +101,11 @@ router.post('/edit-event/:eventId', checkDbConnection, async (req, res) => {
       return res.status(403).send('Forbidden');
     }
 
-    await db.collection('Events').updateOne(
-      { _id: new ObjectId(eventId) },
-      {
-        $set: {
-          name,
-          description,
-          startTime: startTime,
-          endTime: endTime
-        }
-      }
-    );
-    res.redirect(`/events-view/${gameId}`);
+    await db.collection('Events').deleteOne({ _id: new ObjectId(eventId) });
+    res.status(200).send('Event deleted successfully.');
   } catch (err) {
-    console.error("Error updating event:", err);
-    res.send("Error updating event.");
+    console.error('Error deleting event:', err);
+    res.status(500).send('Error deleting event.');
   }
 });
 

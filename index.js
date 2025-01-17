@@ -92,13 +92,14 @@ app.get('/api/collections', async (req, res) => {
 
 // Import and use routes
 const authRouter = require('./routes/auth');
-const gameViewRouter = require('./routes/gameView');
+const gameViewRouter = require('./routes/gamesView');
 const eventsViewRouter = require('./routes/eventsView');
 const modulesViewRouter = require('./routes/modulesView');
 const modulePropertiesViewRouter = require('./routes/modulePropertiesView');
 const modulePropertiesEditRouter = require('./routes/modulePropertiesEdit');
 const createModuleRouter = require('./routes/createModule');
 const editEventRouter = require('./routes/editEvent');
+const addEventRouter = require('./routes/addEvent');
 app.use(authRouter);
 app.use(gameViewRouter);
 app.use(eventsViewRouter);
@@ -107,6 +108,7 @@ app.use(modulePropertiesViewRouter);
 app.use(modulePropertiesEditRouter);
 app.use(createModuleRouter);
 app.use(editEventRouter);
+app.use(addEventRouter);
 
 // Root route
 app.get('/', (req, res) => {

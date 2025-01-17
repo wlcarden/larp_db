@@ -119,39 +119,45 @@ router.get('/events-view/:gameId', async (req, res) => {
     const nextMonthYear = (currentMonth === 11) ? currentYear + 1 : currentYear;
     const eventDaysNext = getEventDaysForMonth(events, nextMonthYear, nextMonth);
 
+    // Generate HTML for the events view
     let html = `
       <!DOCTYPE html>
       <html>
-      <head>
         <title>${gameName} - Events</title>
         ${res.locals.cssLink}
-        <style>
-          tr[data-href] {
-            cursor: pointer;
-          }
-          tr[data-href]:hover {
-            background-color: #f0f0f0;
-          }
-        </style>        
+      <head>
         <div><h1>${gameName} - Events</h1></div>
       </head>
-      <body>
-        <!-- Calendar Widgets -->
-        <div><center>
-        <table border="0" cellpadding="0" cellspacing="50">
-          <tr>
-          <td><center>${generateCalendarHTML(currentYear, currentMonth, eventDaysCurrent)}</center></td>
-          <td><center>${generateCalendarHTML(nextMonthYear, nextMonth, eventDaysNext)}</center></td>
-        </center></div>
+      <body>`;
+    
+    // Calendar Widgets
+    html += `
+      <!-- Calendar Widgets -->
+      <div><center>
+      <table border="0" cellpadding="0" cellspacing="50">
+        <tr>
+        <td><center>${generateCalendarHTML(currentYear, currentMonth, eventDaysCurrent)}</center></td>
+        <td><center>${generateCalendarHTML(nextMonthYear, nextMonth, eventDaysNext)}</center></td>
+      </center></div>
+      </table>
+      <!-- -->`;
 
-        <div><table border="1" cellpadding="5" cellspacing="0">
-          <tr>
-            <th>Event Name</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Description</th>
-            <th>Modules</th>
-          </tr>`;
+    // Add New Event Button
+    if (userIsAdmin) {
+      html += `<a href="/add-event/${gameId}"><button>Add New Event</button></a></td>`;
+    }
+
+    // Events Table
+    html += `
+    <!-- Events Table -->
+      <div><table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+          <th>Event Name</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Description</th>
+          <th>Modules</th>
+        </tr>`;
 
     for (const event of events) {
       const moduleCount = await db.collection('Modules').countDocuments({ eventId: event._id });
@@ -161,14 +167,16 @@ router.get('/events-view/:gameId', async (req, res) => {
         <td>${event.startTime ? formatDate(event.startTime) : ''}</td>
         <td>${event.endTime ? formatDate(event.endTime) : ''}</td>
         <td>${event.description || ''}</td>
-        <td><center><b>${moduleCount}</center></b></td>`;        
+        <td><center><b>${moduleCount}</center></b></td>`;
       if (userIsAdmin) {
         html += `<td><a href="/edit-event/${event._id}"><button>Edit</button></a></td>`;
       }   
       html += `</tr>`;   
     }
-    html += `</table></div>`;
+    html += `</table></div>
+    <!-- -->`;
 
+    // Add script to make rows clickable
     html += `
       <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -179,7 +187,10 @@ router.get('/events-view/:gameId', async (req, res) => {
             });
           });
         });
-      </script>
+      </script>`;
+
+    // Add footer with link to game view
+    html += `
       </body>
       <footer>
       <div><a href="/game-view">Back to Games</a></div>
@@ -187,7 +198,7 @@ router.get('/events-view/:gameId', async (req, res) => {
       </html>`;
 
     res.send(html);
-  } catch (err) {
+  } catch (err) { // Catch and log errors
     console.error("Error fetching events view data:", err);
     res.send("Error fetching events view data.");
   }

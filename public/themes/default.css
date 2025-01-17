@@ -132,3 +132,11 @@ hr {
   max-width: 600px;
   margin: 20px 0;
 }
+
+tr[data-href] {
+  cursor: pointer;
+}
+
+tr[data-href]:hover {
+  background-color: #f0f0f0;
+}
