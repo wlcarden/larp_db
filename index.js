@@ -1,3 +1,5 @@
+//Main entry point for the web server.
+
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const path = require('path');
@@ -96,6 +98,7 @@ const modulesViewRouter = require('./routes/modulesView');
 const modulePropertiesViewRouter = require('./routes/modulePropertiesView');
 const modulePropertiesEditRouter = require('./routes/modulePropertiesEdit');
 const createModuleRouter = require('./routes/createModule');
+const editEventRouter = require('./routes/editEvent');
 app.use(authRouter);
 app.use(gameViewRouter);
 app.use(eventsViewRouter);
@@ -103,6 +106,7 @@ app.use(modulesViewRouter);
 app.use(modulePropertiesViewRouter);
 app.use(modulePropertiesEditRouter);
 app.use(createModuleRouter);
+app.use(editEventRouter);
 
 // Root route
 app.get('/', (req, res) => {

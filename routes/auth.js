@@ -13,6 +13,20 @@ router.get('/login', (req, res) => {
     <head>
       <title>Login</title>
       ${cssLink}
+      <style>
+        body, html {
+          height: 100%;
+          margin: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .login-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+      </style>
     </head>
     <body>
       <div class="login-container">

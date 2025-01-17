@@ -1,19 +1,12 @@
+//Displays the recent and upcoming events for a given game.
+
 const express = require('express');
 const { ObjectId } = require('mongodb');
-const router = express.Router();
+const { formatDate } = require('../utils/helpers');
+const { toLocalHTMLDatetime } = require('../utils/helpers');
+const { getUserRole, isAdmin } = require('../utils/helpers');
 
-const formatDate = (date) => {
-  const options = {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  };
-  return new Date(date).toLocaleString('en-US', options);
-};
+const router = express.Router();
 
 // Helper function to find all valid days of events for a given month
 // Returns a Set of date strings like "YYYY-M-D"
@@ -108,11 +101,14 @@ router.get('/events-view/:gameId', async (req, res) => {
   const { gameId } = req.params;
   const theme = req.cookies.theme || 'default';
   try {
+    const userId = req.session.userId;
     const db = req.app.locals.db;
     const game = await db.collection('Games').findOne({ _id: new ObjectId(gameId) });
     const gameName = game ? game.name : 'Unknown Game';
     const events = await db.collection('Events').find({ gameId: new ObjectId(gameId) }).toArray();
+    const userRole = await getUserRole(db, userId);
 
+    const userIsAdmin = isAdmin(game, userId, userRole);
     // We'll generate two calendars: current month, and next month
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
@@ -165,8 +161,11 @@ router.get('/events-view/:gameId', async (req, res) => {
         <td>${event.startTime ? formatDate(event.startTime) : ''}</td>
         <td>${event.endTime ? formatDate(event.endTime) : ''}</td>
         <td>${event.description || ''}</td>
-        <td><center><b>${moduleCount}</center></b></td>
-      </tr>`;
+        <td><center><b>${moduleCount}</center></b></td>`;        
+      if (userIsAdmin) {
+        html += `<td><a href="/edit-event/${event._id}"><button>Edit</button></a></td>`;
+      }   
+      html += `</tr>`;   
     }
     html += `</table></div>`;
 

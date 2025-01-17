@@ -10,23 +10,7 @@ const checkDbConnection = (req, res, next) => {
   next();
 };
 
-const getUserRole = async (db, userId) => {
-  const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
-  return user ? user.role : 'user';
-};
-
-const isAdmin = (game, userId, userRole) => {
-  return game.administrators.includes(userId) || userRole === 'admin';
-};
-
-const isAuthor = (module, userId) => {
-  return module.writerId.toString() === userId;
-};
-
-const formatDate = (date) => {
-  const options = { weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: true };
-  return new Date(date).toLocaleString('en-US', options);
-};
+const { formatDate, getUserRole, isAdmin, isAuthor } = require('../utils/helpers');
 
 router.get('/module-properties-view/:moduleId', checkDbConnection, async (req, res) => {
   const { moduleId } = req.params;

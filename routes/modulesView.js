@@ -1,6 +1,9 @@
+//Displays the modules for a given Event, including a schedule of when each module is active.
+
 const express = require('express');
 const { ObjectId } = require('mongodb');
 const router = express.Router();
+const { formatDate } = require('../utils/helpers');
 
 async function getUserDisplayNameById(userId, db) {
   const user = await db.collection('Users').findOne({ _id: new ObjectId(userId) });
@@ -146,18 +149,6 @@ router.get('/modules-view/:eventId', async (req, res) => {
 
     // Build the normal modules table
     for (const mod of modules) {
-      const formatDate = (date) => {
-        const options = {
-          timeZone: 'America/New_York',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        };
-        return new Date(date).toLocaleString('en-US', options);
-      };
       html += `
         <tr data-href="/module-properties-view/${mod._id}">
           <td>${mod.name || ''}</td>
