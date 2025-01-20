@@ -98,6 +98,8 @@ const modulesViewRouter = require('./routes/modulesView');
 const modulePropertiesViewRouter = require('./routes/modulePropertiesView');
 const modulePropertiesEditRouter = require('./routes/modulePropertiesEdit');
 const createModuleRouter = require('./routes/createModule');
+const createGameRouter = require('./routes/createGame');
+const editGameRouter = require('./routes/editGame');
 const editEventRouter = require('./routes/editEvent');
 const addEventRouter = require('./routes/addEvent');
 app.use(authRouter);
@@ -109,6 +111,9 @@ app.use(modulePropertiesEditRouter);
 app.use(createModuleRouter);
 app.use(editEventRouter);
 app.use(addEventRouter);
+app.use(createGameRouter);
+app.use(modulePropertiesEditRouter);
+app.use(editGameRouter);
 
 // Root route
 app.get('/', (req, res) => {

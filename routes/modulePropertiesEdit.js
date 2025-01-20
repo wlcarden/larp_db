@@ -10,29 +10,26 @@ const checkDbConnection = (req, res, next) => {
   next();
 };
 
-const { formatDate, getUserRole, isAdmin, isAuthor } = require('../utils/helpers');
+const { getUserRole, isAdmin } = require('../utils/helpers');
 
-router.get('/module-properties-edit/:moduleId', checkDbConnection, async (req, res) => {
-  const { moduleId } = req.params;
+router.get('/module-properties-edit/:gameId', checkDbConnection, async (req, res) => {
+  const { gameId } = req.params;
   const theme = req.cookies.theme || 'default';
   try {
     const db = req.app.locals.db;
-    const module = await db.collection('Modules').findOne({ _id: new ObjectId(moduleId) });
-    if (!module) {
-      return res.status(404).send('Module not found.');
+    console.log('Fetching game with ID:', gameId);
+    const game = await db.collection('Games').findOne({ _id: new ObjectId(gameId) });
+    if (!game) {
+      console.error('Game not found for ID:', gameId);
+      return res.status(404).send('Game not found.');
     }
     const userId = req.session.userId;
-    const event = await db.collection('Events').findOne({ _id: new ObjectId(module.eventId) });
-    const game = await db.collection('Games').findOne({ _id: new ObjectId(event.gameId) });
-    const author = await db.collection('Users').findOne({ _id: new ObjectId(module.writerId) });
     const userRole = await getUserRole(db, userId);
-    const authorName = author ? author.name : 'Unknown User';
     const moduleProperties = game.moduleProperties;
 
     const userIsAdmin = isAdmin(game, userId, userRole);
-    const userIsAuthor = isAuthor(module, userId);
 
-    if (!userIsAdmin && !userIsAuthor) {
+    if (!userIsAdmin) {
       return res.status(403).send('Forbidden');
     }
 
@@ -40,42 +37,45 @@ router.get('/module-properties-edit/:moduleId', checkDbConnection, async (req, r
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Edit \
-        ${module.name}</title>
+        <title>Edit Module Properties</title>
         ${res.locals.cssLink}
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
       </head>
       <body>
         <h1>Edit Module Properties</h1>
-        <h2>${module.name} (${authorName})</h2>
-        <h3>${game.name} - ${event.name}</h3>
-        <form method="POST" action="/module-properties-edit/${moduleId}">
-          <table border="1" cellpadding="5" cellspacing="0">
-            <tr><th>Start Time</th><td><input type="datetime-local" name="startTime" value="${new Date(module.startTime).toISOString().slice(0, 16)}"></td></tr>
-            <tr><th>Duration (h)</th><td><input type="number" name="duration" value="${module.duration}"></td></tr>
-          </table>
-          <hr>
-          <h3>Summary</h3>
-          <textarea name="summary" rows="4" cols="50">${module.summary}</textarea>
-          <hr>
+        <h2>${game.name}</h2>
+        <form method="POST" action="/module-properties-edit/${gameId}">
           <h3>Properties</h3>
           <table border="1" cellpadding="5" cellspacing="0">
-            ${Object.entries(module.properties).map(([key, value]) => {
-              const property = moduleProperties.find(prop => prop.key === key);
-              const label = property ? property.label : key;
-              return `<tr><th>${label}</th><td><input type="text" name="properties[${key}]" value="${value}"></td></tr>`;
+            <tr><th>Property Name</th><th>Type</th><th>Action</th></tr>
+            ${moduleProperties.map(prop => {
+              return `<tr data-key="${prop.key}">
+                <td><input type="text" name="properties[${prop.key}][label]" value="${prop.label}" placeholder="Property Name"></td>
+                <td>
+                  <select name="properties[${prop.key}][type]">
+                    <option value="string" ${prop.type === 'string' ? 'selected' : ''}>String</option>
+                    <option value="number" ${prop.type === 'number' ? 'selected' : ''}>Number</option>
+                    <option value="datetime" ${prop.type === 'datetime' ? 'selected' : ''}>Datetime</option>
+                  </select>
+                </td>
+                <td><button type="button" onclick="removeProperty('${prop.key}')">Remove</button></td>
+              </tr>`;
             }).join('')}
           </table>
+          <button type="button" id="add-property-button">Add Property</button> //TODO: Implement functionality of Add Property button
           <br/>
           <input type="submit" value="Save Changes">
         </form>
-        <br/><a href="/module-properties-view/${moduleId}">Back to Module View</a>
+        <br/><a href="/game-view">Back to Game View</a>
       </body>
       </html>
     `;
     res.send(html);
   } catch (err) {
     console.error("Error fetching module properties edit data:", err);
-    res.send("Error fetching module properties edit data.");
+    res.status(500).send(`Error fetching module properties edit data: ${err.message}`);
   }
 });
 

@@ -26,8 +26,16 @@ router.get('/game-view', requireLogin, async (req, res) => {
       </head>
       <body>
         <h1>Games</h1>
+        <button onclick="window.location.href='/create-game'">Create New Game</button>
         <table border="1" cellpadding="5" cellspacing="0">
-          <tr><th>Name</th><th>System</th><th>Administrators</th><th>Writers</th><th># Module Properties</th></tr>`;
+        <tr>
+        <th>Name</th>
+        <th>System</th>
+        <th>Administrators</th>
+        <th>Writers</th>
+        <th># Module Properties</th>        
+        <th>Actions</th>
+        </tr>`;
     
     for (const game of games) {
       console.log(`Processing game: ${game.name}`);
@@ -46,6 +54,7 @@ router.get('/game-view', requireLogin, async (req, res) => {
         <td>${administrators.map(admin => admin.username).join('<br>') || ''}</td>
         <td>${writers.map(writer => writer.username).join('<br>') || ''}</td>
         <td>${(game.moduleProperties || []).length}</td>
+      <td><a href="/edit-game/${game._id}">Edit</a> | <a href="/module-properties-edit/${game._id}">Properties</a></td>     
       </tr>`;
     }
 
