@@ -72,7 +72,7 @@ router.get('/module-properties-view/:moduleId', checkDbConnection, async (req, r
     }
 
     if (userIsAdmin || userIsAuthor) {
-      html += `<a href="/module-properties-edit/${moduleId}"><button id="edit-button">Edit</button></a>`;
+      html += `<a href="/edit-module/${moduleId}"><button id="edit-button">Edit</button></a>`;
     }
 
     html += `<br/><a href="/modules-view/${module.eventId}">Back to Modules</a>

@@ -42,10 +42,10 @@ router.get('/game-view', requireLogin, async (req, res) => {
       const system = await systemsCollection.findOne({ _id: new ObjectId(game.system) });
       console.log(`System: ${system ? system.name : 'N/A'}`);
       
-      const administrators = await usersCollection.find({ _id: { $in: (game.administrators || []).map(id => new ObjectId(id)) } }).toArray();
+      const administrators = await usersCollection.find({ _id: { $in: (Array.isArray(game.administrators) ? game.administrators : []).map(id => new ObjectId(id)) } }).toArray();
       console.log(`Administrators: ${administrators.map(admin => admin.username).join(', ')}`);
       
-      const writers = await usersCollection.find({ _id: { $in: (game.writers || []).map(id => new ObjectId(id)) } }).toArray();
+      const writers = await usersCollection.find({ _id: { $in: (Array.isArray(game.writers) ? game.writers : []).map(id => new ObjectId(id)) } }).toArray();
       console.log(`Writers: ${writers.map(writer => writer.username).join(', ')}`);
 
       html += `<tr data-href="/events-view/${game._id}">
@@ -71,6 +71,11 @@ router.get('/game-view', requireLogin, async (req, res) => {
       </script>
       </body>
       </html>`;
+    if (req.session.role === 'admin') {
+      html += `<div style="text-align: center; margin-top: 20px;">
+                 <a href="/manage-users">Manage Users</a>
+               </div>`;
+    }
     res.send(html);
   } catch (err) {
     console.error("Error fetching game view data:", err);

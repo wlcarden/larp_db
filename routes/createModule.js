@@ -21,7 +21,7 @@ router.get('/create-module/:eventId', checkDbConnection, async (req, res) => {
 
     const newModule = {
       eventId: new ObjectId(eventId),
-      writerId: new ObjectId(userId),
+      writerId: userId, // Use the user ID of the logged-in account
       name: '',
       summary: '',
       duration: 0,
@@ -35,12 +35,16 @@ router.get('/create-module/:eventId', checkDbConnection, async (req, res) => {
     }
 
     const result = await db.collection('Modules').insertOne(newModule);
-    const newModuleId = result.insertedId;
 
-    res.redirect(`/module-properties-edit/${newModuleId}`);
+    if (result.acknowledged) {
+      const newModuleId = result.insertedId;
+      res.redirect(`/edit-module/${newModuleId}`);
+    } else {
+      console.error("No response from MongoDB on create-module.");
+    }
   } catch (err) {
     console.error("Error creating new module:", err);
-    res.send("Error creating new module.");
+    res.status(500).send("Error creating new module.");
   }
 });
 
